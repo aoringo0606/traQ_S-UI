@@ -7,9 +7,23 @@
 encode zstd gzip
 header /sw.js Cache-Control "max-age=0"
 
-file_server {
-    precompressed br gzip
+handle /api/* {
+    reverse_proxy {$TRAQ_ORIGIN:https://q-dev.trapti.tech} {
+        header_up Host {upstream_hostport}
+    }
 }
-root * /usr/share/caddy
 
-try_files {path} /index.html
+handle /.well-known/* {
+    reverse_proxy {$TRAQ_ORIGIN:https://q-dev.trapti.tech} {
+        header_up Host {upstream_hostport}
+    }
+}
+
+handle {
+    root * /usr/share/caddy
+    try_files {path} /index.html
+
+    file_server {
+        precompressed br gzip
+    }
+}
