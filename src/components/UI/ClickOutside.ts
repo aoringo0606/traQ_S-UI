@@ -1,4 +1,9 @@
-import type { ComponentPublicInstance, VNode } from 'vue'
+import type {
+  ComponentPublicInstance,
+  MaybeRefOrGetter,
+  PropType,
+  VNode
+} from 'vue'
 import {
   Comment,
   Text,
@@ -9,6 +14,7 @@ import {
 } from 'vue'
 
 import { useEventListener } from '@vueuse/core'
+import type { MaybeElement } from '@vueuse/core'
 
 import { unrefElement } from '/@/lib/dom/unrefElement'
 import { useModalStore } from '/@/store/ui/modal'
@@ -48,6 +54,10 @@ export default defineComponent({
       default(this: void) {
         return false
       }
+    },
+    additionalElements: {
+      type: Array as PropType<MaybeRefOrGetter<MaybeElement>[]>,
+      default: () => []
     }
   },
   emits: {
@@ -73,8 +83,10 @@ export default defineComponent({
     }
 
     const isInside = (e: PointerEvent) => {
-      const ele = unrefElement(element)
-      return ele === e.target || e.composedPath().includes(ele)
+      return [element, ...props.additionalElements].some(element => {
+        const ele = unrefElement(element)
+        return ele === e.target || e.composedPath().includes(ele)
+      })
     }
 
     const onPointerDown = (e: PointerEvent) => {
