@@ -6,23 +6,23 @@
       :is-forced-channel="channelState.forced"
       :is-starred="channelState.starred"
       :is-archived="channelState.archived"
+      :is-popup-menu-shown="isPopupMenuShown"
       @click-more="togglePopupMenu"
+      @click-outside="closePopupMenu"
     >
-      <ClickOutside v-if="isPopupMenuShown" @click-outside="closePopupMenu">
-        <ChannelHeaderToolsMenu
-          :class="$style.toolsMenu"
-          :channel-id="channelId"
-          :show-notification-setting-btn="!channelState.forced"
-          :is-archived="channelState.archived"
-          @click-item="closePopupMenu"
-        />
-      </ClickOutside>
+      <ChannelHeaderToolsMenu
+        v-if="isPopupMenuShown"
+        :class="$style.toolsMenu"
+        :channel-id="channelId"
+        :show-notification-setting-btn="!channelState.forced"
+        :is-archived="channelState.archived"
+        @click-item="closePopupMenu"
+      />
     </ChannelHeaderToolsList>
   </div>
 </template>
 
 <script lang="ts" setup>
-import ClickOutside from '/@/components/UI/ClickOutside'
 import useToggle from '/@/composables/utils/useToggle'
 import type { ChannelId } from '/@/types/entity-ids'
 

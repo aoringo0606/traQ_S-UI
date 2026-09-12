@@ -36,15 +36,20 @@
       tooltip="お気に入りに追加する"
       @click="starChannel"
     />
-    <div :class="$style.moreButton">
-      <slot />
-      <HeaderToolsItem
-        :class="$style.icon"
-        icon-mdi
-        icon-name="dots-horizontal"
-        @click="emit('clickMore')"
-      />
-    </div>
+    <ClickOutside
+      :enabled="isPopupMenuShown"
+      @click-outside="emit('clickOutside')"
+    >
+      <div :class="$style.moreButton">
+        <HeaderToolsItem
+          :class="$style.icon"
+          icon-mdi
+          icon-name="dots-horizontal"
+          @click="emit('clickMore')"
+        />
+        <slot />
+      </div>
+    </ClickOutside>
   </div>
 </template>
 
@@ -54,6 +59,7 @@ import { ChannelSubscribeLevel } from '@traptitech/traq'
 import { computed, toRef } from 'vue'
 
 import HeaderToolsItem from '/@/components/Main/MainView/PrimaryViewHeader/PrimaryViewHeaderToolsItem.vue'
+import ClickOutside from '/@/components/UI/ClickOutside'
 import { useQall } from '/@/composables/qall/useQall'
 import useChannelSubscriptionState from '/@/composables/subscription/useChannelSubscriptionState'
 import useResponsive from '/@/composables/useResponsive'
@@ -67,16 +73,19 @@ const props = withDefaults(
     isStarred?: boolean
     isForcedChannel?: boolean
     isArchived?: boolean
+    isPopupMenuShown?: boolean
   }>(),
   {
     isStarred: false,
     isForcedChannel: false,
-    isArchived: false
+    isArchived: false,
+    isPopupMenuShown: false
   }
 )
 
 const emit = defineEmits<{
   (e: 'clickMore'): void
+  (e: 'clickOutside'): void
 }>()
 
 const { isMobile } = useResponsive()
