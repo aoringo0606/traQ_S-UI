@@ -1,57 +1,55 @@
 <template>
   <teleport to="#popup-header-relation">
-    <ClickOutside @click-outside="e => emit('outside-click', e)">
+    <div
+      :id="props.popupId"
+      ref="popupWrap"
+      :class="$style.popup"
+      :style="positionStyle"
+    >
+      <!-- NOTE: Popup から Shift + Tab で戻った際にトリガーのボタンに戻れるように Focus を管理する -->
+      <div tabindex="0" @focus="emit('focus-return')" />
       <div
-        :id="props.popupId"
-        ref="popupWrap"
-        :class="$style.popup"
-        :style="positionStyle"
+        role="tablist"
+        :class="$style.tablist"
+        @keydown.left="onKeydown"
+        @keydown.right="onKeydown"
       >
-        <!-- NOTE: Popup から Shift + Tab で戻った際にトリガーのボタンに戻れるように Focus を管理する -->
-        <div tabindex="0" @focus="emit('focus-return')" />
-        <div
-          role="tablist"
-          :class="$style.tablist"
-          @keydown.left="onKeydown"
-          @keydown.right="onKeydown"
-        >
-          <ATab
-            :id="siblingTabId"
-            ref="siblingTab"
-            :aria-selected="currentTab === 'siblings'"
-            :aria-controls="siblingPanelId"
-            :tabindex="currentTab === 'siblings' ? 0 : -1"
-            label="兄弟チャンネル"
-            @click="currentTab = 'siblings'"
-          />
-          <ATab
-            :id="childrenTabId"
-            ref="childrenTab"
-            :aria-selected="currentTab === 'children'"
-            :aria-controls="childrenPanelId"
-            :tabindex="currentTab === 'children' ? 0 : -1"
-            label="子チャンネル"
-            @click="currentTab = 'children'"
-          />
-        </div>
-        <ChannelHeaderRelationPanel
-          :id="siblingPanelId"
-          role="tabpanel"
-          :aria-labelledby="siblingTabId"
-          :channels="formattedSiblings"
-          empty-message="兄弟チャンネルはありません"
-          :hidden="currentTab !== 'siblings'"
+        <ATab
+          :id="siblingTabId"
+          ref="siblingTab"
+          :aria-selected="currentTab === 'siblings'"
+          :aria-controls="siblingPanelId"
+          :tabindex="currentTab === 'siblings' ? 0 : -1"
+          label="兄弟チャンネル"
+          @click="currentTab = 'siblings'"
         />
-        <ChannelHeaderRelationPanel
-          :id="childrenPanelId"
-          role="tabpanel"
-          :aria-labelledby="childrenTabId"
-          :channels="formattedChildren"
-          empty-message="子チャンネルはありません"
-          :hidden="currentTab !== 'children'"
+        <ATab
+          :id="childrenTabId"
+          ref="childrenTab"
+          :aria-selected="currentTab === 'children'"
+          :aria-controls="childrenPanelId"
+          :tabindex="currentTab === 'children' ? 0 : -1"
+          label="子チャンネル"
+          @click="currentTab = 'children'"
         />
       </div>
-    </ClickOutside>
+      <ChannelHeaderRelationPanel
+        :id="siblingPanelId"
+        role="tabpanel"
+        :aria-labelledby="siblingTabId"
+        :channels="formattedSiblings"
+        empty-message="兄弟チャンネルはありません"
+        :hidden="currentTab !== 'siblings'"
+      />
+      <ChannelHeaderRelationPanel
+        :id="childrenPanelId"
+        role="tabpanel"
+        :aria-labelledby="childrenTabId"
+        :channels="formattedChildren"
+        empty-message="子チャンネルはありません"
+        :hidden="currentTab !== 'children'"
+      />
+    </div>
   </teleport>
 </template>
 
@@ -60,7 +58,6 @@ import { computed, onMounted, ref, useId } from 'vue'
 import type { Ref } from 'vue'
 
 import ATab from '/@/components/UI/ATab.vue'
-import ClickOutside from '/@/components/UI/ClickOutside'
 import useBoxSize from '/@/composables/dom/useBoxSize'
 import useRelatedChannels from '/@/composables/useRelatedChannels'
 import { safeMod } from '/@/lib/basic/arithmetic'
@@ -124,7 +121,6 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 const emit = defineEmits<{
-  (e: 'outside-click', event: Event): void
   (e: 'focus-return'): void
 }>()
 
@@ -143,7 +139,8 @@ const focus = () => {
     childrenTab.value?.focus()
   }
 }
-defineExpose({ focus })
+const getElement = () => popupWrap.value
+defineExpose({ focus, getElement })
 </script>
 
 <style lang="scss" module>

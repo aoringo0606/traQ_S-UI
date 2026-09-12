@@ -1,29 +1,35 @@
 <template>
-  <button
-    ref="trigger"
-    type="button"
-    aria-haspopup="true"
-    :aria-expanded="isOpen"
-    :aria-controls="popupId"
-    title="関連チャンネルを表示"
-    :class="$style.trigger"
-    @click="toggle"
+  <ClickOutside
+    :enabled="isOpen"
+    :additional-elements="[popupElement]"
+    @click-outside="close"
   >
-    <div :class="$style.iconContainer">
-      <AIcon :size="20" name="rounded-triangle" :class="$style.icon" />
+    <div :class="$style.container">
+      <button
+        ref="trigger"
+        type="button"
+        aria-haspopup="true"
+        :aria-expanded="isOpen"
+        :aria-controls="popupId"
+        title="関連チャンネルを表示"
+        :class="$style.trigger"
+        @click="toggle"
+      >
+        <div :class="$style.iconContainer">
+          <AIcon :size="20" name="rounded-triangle" :class="$style.icon" />
+        </div>
+      </button>
+      <div v-if="isOpen" tabindex="0" @focus="focusPopup" />
+      <ChannelHeaderRelationPopup
+        v-if="isOpen"
+        ref="popup"
+        :popup-id="popupId"
+        :right-position="triggerBottomRightPosition"
+        :channel-id="props.channelId"
+        @focus-return="focusTrigger"
+      />
     </div>
-  </button>
-  <!-- NOTE: ボタンから Tab 移動した際に popup のはじめに飛べるように Focus を管理する -->
-  <div v-if="isOpen" tabindex="0" @focus="focusPopup" />
-  <ChannelHeaderRelationPopup
-    v-if="isOpen"
-    ref="popup"
-    :popup-id="popupId"
-    :right-position="triggerBottomRightPosition"
-    :channel-id="props.channelId"
-    @outside-click="close"
-    @focus-return="focusTrigger"
-  />
+  </ClickOutside>
 </template>
 
 <script setup lang="ts">
@@ -32,6 +38,7 @@ import { computed, onMounted, reactive, ref, useId } from 'vue'
 import { useEventListener } from '@vueuse/core'
 
 import AIcon from '/@/components/UI/AIcon.vue'
+import ClickOutside from '/@/components/UI/ClickOutside'
 import type { Point } from '/@/lib/basic/point'
 
 import ChannelHeaderRelationPopup from './ChannelHeaderRelationPopup.vue'
@@ -42,6 +49,7 @@ const props = defineProps<{
 
 const trigger = ref<HTMLElement | null>(null)
 const popup = ref<InstanceType<typeof ChannelHeaderRelationPopup> | null>(null)
+const popupElement = computed(() => popup.value?.getElement())
 
 const popupId = useId()
 
@@ -51,11 +59,7 @@ const toggle = () => {
 
   isOpen.value = !isOpen.value
 }
-const close = (e: Event) => {
-  // NOTE: popup の外側かつボタンをクリックしたときに、うまく閉じないため抑制する
-  //       具体的には close -> toggle と呼ばれて閉じなくなる
-  if (trigger.value !== null && e.composedPath().includes(trigger.value)) return
-
+const close = () => {
   isOpen.value = false
 }
 
@@ -90,6 +94,10 @@ const focusTrigger = () => {
 </script>
 
 <style lang="scss" module>
+.container {
+  display: contents;
+}
+
 .trigger {
   @include color-ui-secondary;
 
